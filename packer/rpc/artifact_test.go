@@ -35,6 +35,16 @@ func TestArtifactRPC(t *testing.T) {
 	if aClient.String() != "string" {
 		t.Fatalf("bad: %s", aClient.String())
 	}
+
+	server.RegisterArtifact(aClient)
+
+	aClientNested := client.Artifact()
+
+	// Test
+	if aClientNested.BuilderId() != "bid" {
+		t.Fatalf("bad: %s", aClient.BuilderId())
+	}
+
 }
 
 func TestArtifact_Implements(t *testing.T) {
