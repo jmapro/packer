@@ -99,7 +99,6 @@ func (p *PostProcessorServer) PostProcess(streamId uint32, reply *PostProcessorP
 	if err != nil {
 		return NewBasicError(err)
 	}
-	defer client.Close()
 
 	if p.context == nil {
 		p.context, p.contextCancel = context.WithCancel(context.Background())
