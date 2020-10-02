@@ -377,10 +377,10 @@ PostProcessorRunSeqLoop:
 					artifacts = append(artifacts, priorArtifact)
 				} else {
 					log.Printf("Deleting prior artifact from post-processor '%s'", corePP.PType)
-					if err := priorArtifact.Destroy(); err != nil {
-						log.Printf("Error is %#v", err)
-						errors = append(errors, fmt.Errorf("Failed cleaning up prior artifact: %s; pp is %s", err, corePP.PType))
-					}
+					// if err := priorArtifact.Destroy(); err != nil {
+					// 	log.Printf("Error is %#v", err)
+					// 	errors = append(errors, fmt.Errorf("Failed cleaning up prior artifact: %s; pp is %s", err, corePP.PType))
+					// }
 				}
 			}
 
@@ -399,9 +399,9 @@ PostProcessorRunSeqLoop:
 		artifacts[0] = builderArtifact
 	} else {
 		log.Printf("Deleting original artifact for build '%s'", b.Type)
-		if err := builderArtifact.Destroy(); err != nil {
-			errors = append(errors, fmt.Errorf("Error destroying builder artifact: %s; bad artifact: %#v", err, builderArtifact.Files()))
-		}
+		// if err := builderArtifact.Destroy(); err != nil {
+		// 	errors = append(errors, fmt.Errorf("Error destroying builder artifact: %s; bad artifact: %#v", err, builderArtifact.Files()))
+		// }
 	}
 
 	if len(errors) > 0 {
