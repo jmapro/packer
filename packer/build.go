@@ -329,7 +329,7 @@ PostProcessorRunSeqLoop:
 			}
 			ts := CheckpointReporter.AddSpan(corePP.PType, "post-processor", corePP.config)
 			artifact, defaultKeep, forceOverride, err := corePP.PostProcessor.PostProcess(ctx, ppUi, priorArtifact)
-			log.Printf("got an artifact? %v. %T", err, corePP.PostProcessor)
+			log.Printf("got an artifact: err %v. pp: %T. id: %v", err, corePP.PostProcessor, artifact.Id())
 			ts.End(err)
 			if err != nil {
 				errors = append(errors, fmt.Errorf("Post-processor failed: %s", err))
