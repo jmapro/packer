@@ -2,8 +2,11 @@ package rpc
 
 import (
 	"context"
+	"io"
 	"log"
+	"time"
 
+	"github.com/hashicorp/packer/common/retry"
 	"github.com/hashicorp/packer/packer"
 )
 
@@ -77,8 +80,30 @@ func (p *postProcessor) PostProcess(ctx context.Context, ui packer.Ui, a packer.
 		return nil, false, false, nil
 	}
 
-	client, err := newClientWithMux(p.mux, response.StreamId)
+	if response.StreamId == nextId {
+		log.Printf("Returned the same artifact")
+		return a, response.Keep, response.ForceOverride, nil
+	}
+
+	var client *Client
+	err := retry.Config{
+		RetryDelay: (&retry.Backoff{InitialBackoff: time.Second / 2}).Linear,
+		ShouldRetry: func(err error) bool {
+			if err == io.EOF {
+				return true
+			}
+			return false
+		},
+	}.Run(context.TODO(), func(_ context.Context) (err error) {
+		log.Printf("connecting to artifact %v", response.StreamId)
+		client, err = newClientWithMux(p.mux, response.StreamId)
+		if err != nil {
+			log.Printf("failed to start client: %v", err)
+		}
+		return err
+	})
 	if err != nil {
+		log.Printf("failed to start client: %v", err)
 		return nil, false, false, err
 	}
 
@@ -94,7 +119,10 @@ func (p *PostProcessorServer) Configure(args *PostProcessorConfigureArgs, reply 
 	return err
 }
 
-func (p *PostProcessorServer) PostProcess(streamId uint32, reply *PostProcessorProcessResponse) error {
+func (p *PostProcessorServer) PostProcess(streamId uint32, reply *PostProcessorProcessResponse) (err error) {
+	defer func() {
+		log.Printf("returning %v && %v", *reply, err)
+	}()
 	client, err := newClientWithMux(p.mux, streamId)
 	if err != nil {
 		return NewBasicError(err)
@@ -104,20 +132,37 @@ func (p *PostProcessorServer) PostProcess(streamId uint32, reply *PostProcessorP
 		p.context, p.contextCancel = context.WithCancel(context.Background())
 	}
 
-	streamId = 0
-	artifactResult, keep, forceOverride, err := p.p.PostProcess(p.context, client.Ui(), client.Artifact())
-	if err == nil && artifactResult != nil {
-		streamId = p.mux.NextId()
-		server := newServerWithMux(p.mux, streamId)
-		server.RegisterArtifact(artifactResult)
-		go server.Serve()
-	}
-
+	artifact := client.Artifact()
+	artifactResult, keep, forceOverride, err := p.p.PostProcess(p.context, client.Ui(), artifact)
 	*reply = PostProcessorProcessResponse{
 		Err:           NewBasicError(err),
 		Keep:          keep,
 		ForceOverride: forceOverride,
-		StreamId:      streamId,
+		StreamId:      0,
+	}
+	if err != nil {
+		log.Printf("error: %v", err)
+		client.Close()
+		return nil
+	}
+
+	if artifactResult == artifact {
+		reply.StreamId = streamId
+		log.Printf("same: %v", streamId)
+		log.Printf("same: %v", reply.StreamId)
+		// client.Close()
+		return nil
+	}
+
+	if artifactResult != nil {
+		streamId = p.mux.NextId()
+		reply.StreamId = streamId
+		server := newServerWithMux(p.mux, streamId)
+		server.RegisterArtifact(artifactResult)
+		go server.Serve()
+
+		// client.Close()
+		log.Printf("new")
 	}
 
 	return nil

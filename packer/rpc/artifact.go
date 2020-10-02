@@ -1,6 +1,8 @@
 package rpc
 
 import (
+	"log"
+
 	"github.com/hashicorp/packer/packer"
 )
 
@@ -8,6 +10,7 @@ import (
 // available over an RPC connection.
 type artifact struct {
 	commonClient
+	id int
 }
 
 // ArtifactServer wraps a packer.Artifact implementation and makes it
@@ -17,7 +20,11 @@ type ArtifactServer struct {
 }
 
 func (a *artifact) BuilderId() (result string) {
-	a.client.Call(a.endpoint+".BuilderId", new(interface{}), &result)
+	log.Printf("calling BuilderId ! %q", a.endpoint)
+	err := a.client.Call(a.endpoint+".BuilderId", new(interface{}), &result)
+	if err != nil {
+		// panic(err)
+	}
 	return
 }
 
@@ -27,7 +34,11 @@ func (a *artifact) Files() (result []string) {
 }
 
 func (a *artifact) Id() (result string) {
-	a.client.Call(a.endpoint+".Id", new(interface{}), &result)
+	log.Printf("calling ID ! %q", a.endpoint)
+	err := a.client.Call(a.endpoint+".Id", new(interface{}), &result)
+	if err != nil {
+		// panic(err)
+	}
 	return
 }
 
@@ -42,10 +53,12 @@ func (a *artifact) State(name string) (result interface{}) {
 }
 
 func (a *artifact) Destroy() error {
+	log.Printf("destroying %d", a.id)
 	var result error
 	if err := a.client.Call(a.endpoint+".Destroy", new(interface{}), &result); err != nil {
 		return err
 	}
+	// panic("aah someone's destroying me")
 
 	return result
 }

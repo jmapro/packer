@@ -31,19 +31,21 @@ func (c *cmdPostProcessor) Configure(config ...interface{}) error {
 	return c.p.Configure(config...)
 }
 
-func (c *cmdPostProcessor) PostProcess(ctx context.Context, ui packer.Ui, a packer.Artifact) (packer.Artifact, bool, bool, error) {
+func (c *cmdPostProcessor) PostProcess(ctx context.Context, ui packer.Ui, a packer.Artifact) (ar packer.Artifact, b1 bool, b2 bool, err error) {
 	defer func() {
 		r := recover()
 		c.checkExit(r, nil)
 	}()
 
-	return c.p.PostProcess(ctx, ui, a)
+	ar, b2, b2, err = c.p.PostProcess(ctx, ui, a)
+	log.Printf("=-=-------p: %T. error is %v", c.p, err)
+	return
 }
 
 func (c *cmdPostProcessor) checkExit(p interface{}, cb func()) {
 	if c.client.Exited() && cb != nil {
 		cb()
 	} else if p != nil && !Killed {
-		log.Panic(p)
+		log.Panic("hohooho:", p)
 	}
 }
