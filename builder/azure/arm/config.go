@@ -160,7 +160,8 @@ type Config struct {
 	//     "gallery_name": "GalleryName",
 	//     "image_name": "ImageName",
 	//     "image_version": "1.0.0",
-	//     "replication_regions": ["regionA", "regionB", "regionC"]
+	//     "replication_regions": ["regionA", "regionB", "regionC"],
+	//     "storage_account_type": "Premium_LRS"
 	// }
 	// "managed_image_name": "TargetImageName",
 	// "managed_image_resource_group_name": "TargetResourceGroup"
@@ -174,11 +175,12 @@ type Config struct {
 	//     image_name = "ImageName"
 	//     image_version = "1.0.0"
 	//     replication_regions = ["regionA", "regionB", "regionC"]
+	//	   storage_account_type = "Premium_LRS"
 	// }
 	// managed_image_name = "TargetImageName"
 	// managed_image_resource_group_name = "TargetResourceGroup"
 	// ```
-	SharedGalleryDestination SharedImageGalleryDestination `mapstructure:"shared_image_gallery_destination"`
+	SharedGalleryDestination      SharedImageGalleryDestination `mapstructure:"shared_image_gallery_destination"`
 	sharedImageStorageAccountType compute.StorageAccountTypes
 	// How long to wait for an image to be published to the shared image
 	// gallery before timing out. If your Packer build is failing on the

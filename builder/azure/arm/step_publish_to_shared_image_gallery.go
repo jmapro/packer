@@ -143,7 +143,7 @@ func (s *StepPublishToSharedImageGallery) Run(ctx context.Context, stateBag mult
 	s.say(fmt.Sprintf(" -> SIG image version endoflife date      : '%s'", miSGImageVersionEndOfLifeDate))
 	s.say(fmt.Sprintf(" -> SIG image version exclude from latest : '%t'", miSGImageVersionExcludeFromLatest))
 	s.say(fmt.Sprintf(" -> SIG replica count [1, 10]             : '%d'", miSigReplicaCount))
-	s.say(fmt.Sprintf(" -> SIG image storage account type        : '%s'", miSigImageStorageAccountType))
+	s.say(fmt.Sprintf(" -> SIG image storage account type        : '%s'", string(miSigImageStorageAccountType)))
 
 	createdGalleryImageVersionID, err := s.publish(ctx, mdiID, miSigPubRg, miSIGalleryName, miSGImageName, miSGImageVersion, miSigReplicationRegions, miSGImageVersionEndOfLifeDate, miSGImageVersionExcludeFromLatest, miSigReplicaCount, location, tags, miSigImageStorageAccountType)
 
