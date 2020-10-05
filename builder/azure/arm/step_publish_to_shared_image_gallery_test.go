@@ -4,13 +4,14 @@ import (
 	"context"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-03-01/compute"
 	"github.com/hashicorp/packer/builder/azure/common/constants"
 	"github.com/hashicorp/packer/helper/multistep"
 )
 
 func TestStepPublishToSharedImageGalleryShouldNotPublishForVhd(t *testing.T) {
 	var testSubject = &StepPublishToSharedImageGallery{
-		publish: func(context.Context, string, string, string, string, string, []string, string, bool, int32, string, map[string]*string) (string, error) {
+		publish: func(context.Context, string, string, string, string, string, []string, string, bool, int32, string, map[string]*string, compute.StorageAccountType) (string, error) {
 			return "test", nil
 		},
 		say:   func(message string) {},
@@ -31,7 +32,7 @@ func TestStepPublishToSharedImageGalleryShouldNotPublishForVhd(t *testing.T) {
 
 func TestStepPublishToSharedImageGalleryShouldPublishForManagedImageWithSig(t *testing.T) {
 	var testSubject = &StepPublishToSharedImageGallery{
-		publish: func(context.Context, string, string, string, string, string, []string, string, bool, int32, string, map[string]*string) (string, error) {
+		publish: func(context.Context, string, string, string, string, string, []string, string, bool, int32, string, map[string]*string, compute.StorageAccountType) (string, error) {
 			return "", nil
 		},
 		say:   func(message string) {},
@@ -67,6 +68,7 @@ func createTestStateBagStepPublishToSharedImageGallery() multistep.StateBag {
 	stateBag.Put(constants.ArmManagedImageResourceGroupName, "Unit Test: ManagedImageResourceGroupName")
 	stateBag.Put(constants.ArmManagedImageName, "Unit Test: ManagedImageName")
 	stateBag.Put(constants.ArmManagedImageSubscription, "Unit Test: ManagedImageSubscription")
+	stateBag.Put(constants.ArmManagedImageSharedGalleryImageStorageAccountType, compute.StorageAccountTypesPremiumLRS)
 
 	return stateBag
 }
