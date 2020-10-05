@@ -96,6 +96,7 @@ type SharedImageGalleryDestination struct {
 	SigDestinationImageName          string   `mapstructure:"image_name"`
 	SigDestinationImageVersion       string   `mapstructure:"image_version"`
 	SigDestinationReplicationRegions []string `mapstructure:"replication_regions"`
+	SigStorageAccountType            string   `mapstructure:"storage_account_type"`
 }
 
 type Config struct {
@@ -178,6 +179,7 @@ type Config struct {
 	// managed_image_resource_group_name = "TargetResourceGroup"
 	// ```
 	SharedGalleryDestination SharedImageGalleryDestination `mapstructure:"shared_image_gallery_destination"`
+	sharedImageStorageAccountType compute.StorageAccountTypes
 	// How long to wait for an image to be published to the shared image
 	// gallery before timing out. If your Packer build is failing on the
 	// Publishing to Shared Image Gallery step with the error `Original Error:
@@ -1011,6 +1013,14 @@ func assertRequiredParametersSet(c *Config, errs *packer.MultiError) {
 		}
 		if c.SharedGalleryDestination.SigDestinationSubscription == "" {
 			c.SharedGalleryDestination.SigDestinationSubscription = c.ClientConfig.SubscriptionID
+		}
+		switch c.SharedGalleryDestination.SigStorageAccountType {
+		case "", string(compute.StorageAccountTypesStandardLRS):
+			c.sharedImageStorageAccountType = compute.StorageAccountTypesStandardLRS
+		case string(compute.StorageAccountTypesPremiumLRS):
+			c.sharedImageStorageAccountType = compute.StorageAccountTypesPremiumLRS
+		default:
+			errs = packer.MultiErrorAppend(errs, fmt.Errorf("The storage_account_type %q is invalid", c.SharedGalleryDestination.SigStorageAccountType))
 		}
 	}
 	if c.SharedGalleryTimeout == 0 {
